@@ -11,24 +11,20 @@ except ImportError:
 # 2. 페이지 설정
 st.set_page_config(page_title="번개 챗봇 AI", page_icon="⚡")
 
-# 3. 사계절 배경 설정 함수 (겨울 이미지 업데이트)
-def get_season_data():
+# 3. 사계절 배경 설정 및 세션 저장 (배경 고정 로직)
+if "bg_data" not in st.session_state:
     seasons = {
         "봄": "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
         "여름": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
         "가을": "https://images.unsplash.com/photo-1507783548227-544c3b8fc065",
-        # 새로운 겨울 이미지 (눈 덮인 숲이나 마을 느낌)
-        "겨울": "https://unsplash.com/photos/a-snowy-landscape-with-trees-and-mountains-in-the-background-3niSyUkD7lc" 
+        # 오류가 나지 않는 고화질 눈꽃 겨울 이미지
+        "겨울": "https://images.unsplash.com/photo-1483921020237-2ff51e8e4b22"
     }
+    # 랜덤으로 하나를 선택해 세션에 저장 (딱 한 번만 실행됨)
     name, url = random.choice(list(seasons.items()))
-    return name, url
-
-# 세션 상태에 배경 정보가 없으면 처음 한 번만 생성
-if "bg_data" not in st.session_state:
-    name, url = get_season_data()
     st.session_state.bg_data = {"name": name, "url": url}
 
-# CSS 적용 (매 리런마다 세션에 저장된 고정된 URL 사용)
+# CSS를 사용하여 배경 이미지 적용 (반투명 레이어를 겹쳐 글씨가 잘 보이게 설정)
 st.markdown(f"""
     <style>
     .stApp {{
@@ -40,7 +36,7 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# 타이틀에 저장된 계절 이름 표시
+# 타이틀에 현재 선택된 계절 표시
 st.title(f"⚡ 번개 챗봇 AI ({st.session_state.bg_data['name']})")
 
 # 4. API 키 확인
