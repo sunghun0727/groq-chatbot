@@ -11,13 +11,14 @@ except ImportError:
 # 2. 페이지 설정
 st.set_page_config(page_title="번개 챗봇 AI", page_icon="⚡")
 
-# 3. 사계절 배경 설정 및 세션 저장
+# 3. 사계절 배경 설정 함수 (겨울 이미지 업데이트)
 def get_season_data():
     seasons = {
         "봄": "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
         "여름": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
         "가을": "https://images.unsplash.com/photo-1507783548227-544c3b8fc065",
-        "겨울": "https://images.unsplash.com/photo-1477601263368-1796b4009795"
+        # 새로운 겨울 이미지 (눈 덮인 숲이나 마을 느낌)
+        "겨울": "https://images.unsplash.com/photo-1478720568477-152d9b164e26" 
     }
     name, url = random.choice(list(seasons.items()))
     return name, url
