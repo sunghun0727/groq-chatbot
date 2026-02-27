@@ -18,7 +18,7 @@ def get_season_data():
         "여름": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
         "가을": "https://images.unsplash.com/photo-1507783548227-544c3b8fc065",
         # 새로운 겨울 이미지 (눈 덮인 숲이나 마을 느낌)
-        "겨울": "https://images.unsplash.com/photo-1478720568477-152d9b164e26" 
+        "겨울": "https://unsplash.com/photos/a-snowy-landscape-with-trees-and-mountains-in-the-background-3niSyUkD7lc" 
     }
     name, url = random.choice(list(seasons.items()))
     return name, url
