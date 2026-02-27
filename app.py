@@ -11,30 +11,36 @@ except ImportError:
 # 2. 페이지 설정
 st.set_page_config(page_title="번개 챗봇 AI", page_icon="⚡")
 
-# 3. 사계절 배경 설정 함수
-def set_bg_season():
+# 3. 사계절 배경 설정 및 세션 저장
+def get_season_data():
     seasons = {
         "봄": "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
         "여름": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
         "가을": "https://images.unsplash.com/photo-1507783548227-544c3b8fc065",
         "겨울": "https://images.unsplash.com/photo-1477601263368-1796b4009795"
     }
-    season_name, bg_url = random.choice(list(seasons.items()))
-    st.markdown(f"""
-        <style>
-        .stApp {{
-            background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url("{bg_url}");
-            background-size: cover;
-            background-attachment: fixed;
-        }}
-        </style>
-        """, unsafe_allow_html=True)
-    return season_name
+    name, url = random.choice(list(seasons.items()))
+    return name, url
 
-if "season" not in st.session_state:
-    st.session_state.season = set_bg_season()
+# 세션 상태에 배경 정보가 없으면 처음 한 번만 생성
+if "bg_data" not in st.session_state:
+    name, url = get_season_data()
+    st.session_state.bg_data = {"name": name, "url": url}
 
-st.title(f"⚡ 번개 챗봇 AI ({st.session_state.season})")
+# CSS 적용 (매 리런마다 세션에 저장된 고정된 URL 사용)
+st.markdown(f"""
+    <style>
+    .stApp {{
+        background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), 
+                    url("{st.session_state.bg_data['url']}");
+        background-size: cover;
+        background-attachment: fixed;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+# 타이틀에 저장된 계절 이름 표시
+st.title(f"⚡ 번개 챗봇 AI ({st.session_state.bg_data['name']})")
 
 # 4. API 키 확인
 if "GROQ_API_KEY" not in st.secrets:
