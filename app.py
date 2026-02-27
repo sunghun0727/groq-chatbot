@@ -1,56 +1,87 @@
 import streamlit as st
-from groq import Groq
+import random
 
-# 1. 페이지 설정 및 제목
+# 1. 라이브러리 체크 (ImportError 방지)
+try:
+    from groq import Groq
+except ImportError:
+    st.error("❗ 'groq' 라이브러리가 설치되지 않았습니다. 터미널에 'pip install groq'를 입력해주세요.")
+    st.stop()
+
+# 2. 페이지 설정
 st.set_page_config(page_title="번개 챗봇 AI", page_icon="⚡")
-st.title("⚡ 번개 챗봇 AI")
-st.markdown("---")
 
-# 2. API 키 설정 (st.secrets 사용)
-# .streamlit/secrets.toml 파일에 GROQ_API_KEY = "your_api_key_here"가 있어야 합니다.
+# 3. 사계절 배경 설정 함수
+def set_bg_season():
+    seasons = {
+        "봄": "https://images.unsplash.com/photo-1490750967868-88aa4486c946",
+        "여름": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+        "가을": "https://images.unsplash.com/photo-1507783548227-544c3b8fc065",
+        "겨울": "https://images.unsplash.com/photo-1477601263368-1796b4009795"
+    }
+    season_name, bg_url = random.choice(list(seasons.items()))
+    st.markdown(f"""
+        <style>
+        .stApp {{
+            background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url("{bg_url}");
+            background-size: cover;
+            background-attachment: fixed;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
+    return season_name
+
+if "season" not in st.session_state:
+    st.session_state.season = set_bg_season()
+
+st.title(f"⚡ 번개 챗봇 AI ({st.session_state.season})")
+
+# 4. API 키 확인
+if "GROQ_API_KEY" not in st.secrets:
+    st.warning("⚠️ .streamlit/secrets.toml 파일에 GROQ_API_KEY를 설정해주세요.")
+    st.stop()
+
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# 3. 세션 상태(st.session_state) 초기화: 대화 기록 저장
+# 5. 세션 상태 및 시스템 프롬프트 (한국어 고정 명령 추가)
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "system", "content": "너는 코딩을 아주 쉽게 알려주는 친절한 선생님이야. 복잡한 개념도 비유를 들어서 초등학생도 이해할 수 있게 설명해줘."}
-    ]
+    st.session_state.messages = [{
+        "role": "system", 
+        "content": (
+            "너는 코딩을 아주 쉽게 알려주는 친절한 선생님이야. "
+            "사용자가 어떤 언어(영어, 러시아어, 중국어 등)로 물어보더라도 "
+            "반드시 답변은 '한국어'로만 해야 해. "
+            "복잡한 개념도 비유를 들어서 초등학생도 이해할 수 있게 설명해줘."
+        )
+    }]
 
-# 4. 사이드바 구성: 대화 초기화 기능
+# 사이드바 리셋 버튼
 with st.sidebar:
-    st.title("설정")
     if st.button("💬 대화 내용 지우기"):
-        st.session_state.messages = [
-            {"role": "system", "content": "너는 코딩을 아주 쉽게 알려주는 친절한 선생님이야. 복잡한 개념도 비유를 들어서 초등학생도 이해할 수 있게 설명해줘."}
-        ]
+        st.session_state.messages = [st.session_state.messages[0]]
         st.rerun()
 
-# 5. 기존 대화 기록 출력 (System 메시지 제외)
+# 6. 대화 출력
 for message in st.session_state.messages:
     if message["role"] != "system":
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-# 6. 사용자 입력 및 AI 답변 처리
-if prompt := st.chat_input("선생님께 무엇이든 물어보세요!"):
-    # 사용자 메시지 표시 및 저장
+# 7. 사용자 입력 및 답변 생성
+if prompt := st.chat_input("선생님께 질문해보세요!"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Groq API 호출 및 답변 생성
     with st.chat_message("assistant", avatar="⚡"):
         try:
-            chat_completion = client.chat.completions.create(
+            # llama-3.3-70b-versatile 모델 사용 (한국어 처리 능력이 더 우수함)
+            completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=st.session_state.messages,
-                stream=False # 스트리밍을 원하면 True로 변경 가능
             )
-            response = chat_completion.choices[0].message.content
+            response = completion.choices[0].message.content
             st.markdown(response)
-            
-            # AI 답변 저장
             st.session_state.messages.append({"role": "assistant", "content": response})
-            
         except Exception as e:
             st.error(f"오류가 발생했습니다: {e}")
